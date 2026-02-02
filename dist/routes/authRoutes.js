@@ -1,0 +1,23 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const authController_1 = require("../controllers/authController");
+const checkRole_1 = require("../middleware/checkRole");
+const authMiddleware_1 = require("../middleware/authMiddleware");
+const router = express_1.default.Router();
+router.post("/user/register", authController_1.register);
+router.post("/user/login", authController_1.login);
+router.get("/refresh", authController_1.refresh);
+router.post("/user/logout", authController_1.logout);
+router.get("/users", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin"), authController_1.getAllUsers);
+router.get("/details", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin"), authController_1.getUserById);
+router.patch("/userPerformence/:id/batch/:batchId", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin"), authController_1.updateUserPerformanceByBatchId);
+router.get("/user", authMiddleware_1.authenticate, authController_1.getMe);
+router.put("/user/:userId", authMiddleware_1.authenticate, authController_1.updateUser);
+router.put("/reset-password/:userId", authMiddleware_1.authenticate, authController_1.updatePassword);
+router.delete("/user/:userId", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin", "instructor"), authController_1.deleteUser);
+router.patch("/user/block-student/:studentId", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin", "instructor"), authController_1.blockStudent);
+exports.default = router;
