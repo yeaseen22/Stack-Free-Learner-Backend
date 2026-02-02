@@ -1,6 +1,6 @@
-# ⚔️ Programming Fighter Backend Server
+# ⚔️ Programming Stack Free Learner Backend Server
 
-A powerful and scalable backend server for the **Programming Fighter** platform, built with Node.js and Express.
+A powerful and scalable backend server for the **Programming Stack Free Learner Platform** platform, built with Node.js and Express.
 
 ## 🚀 Features
 
