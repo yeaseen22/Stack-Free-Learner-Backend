@@ -28,7 +28,7 @@ A powerful and scalable backend server for the **Programming Stack Free Learner 
 
 \`\`\`bash
 git clone https://github.com/yourusername/pf-backend.git
-cd pf-backend
+cd Stack-Free-Learner-Backend
 npm install
 # or
 yarn install
