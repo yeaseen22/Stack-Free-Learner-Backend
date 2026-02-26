@@ -17,16 +17,17 @@ import instructorRoutes from "./routes/instructor/instructorRoutes";
 import manualPaymentRoutes from "./routes/payment/manualPaymentRoutes";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
+import mongoose from "mongoose";
 
 const app = express();
 
 // Middleware
-app.use(
-  cors({
-    origin: ["https://www.programming-fighter.com", "http://localhost:3000"],
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: ["http://localhost:3000", "http://localhost:8000"],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 app.use(express.json());
 app.use(bodyParser.json());
@@ -34,8 +35,19 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.get("/", (req, res) => {
-  res.send("Server is running for Programming Fighter");
+  const dbStatus = mongoose.connection.readyState === 1 ? "Connected" : "Disconnected";
+  res.json({
+    message: "Server is running for Programming Fighter",
+    status: "OK",
+    database: {
+      status: dbStatus,
+      name: mongoose.connection.name || "Not connected"
+    },
+    timestamp: new Date().toISOString()
+  });
 });
+
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/courses", courseRoutes);
