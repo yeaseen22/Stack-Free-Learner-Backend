@@ -8,7 +8,6 @@ const router = express.Router();
 router.get(
   "/instructors-info",
   authenticate,
-  authorize("admin", "instructor"),
   allInstructorInfo
 );
 
