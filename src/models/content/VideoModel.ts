@@ -4,7 +4,9 @@ import { IAssignment, IQuiz, IVideo, Videos } from "../../interfaces/content/vid
 
 const videoSchema = new Schema<Videos>({
   title: { type: String, required: true },
-  url: { type: String, required: true },
+  videoId: { type: String, required: false },
+  thumbnail: { type: String, required: false },
+  url: { type: String, required: false },
 });
 
 const assignmentSchema = new Schema<IAssignment>({

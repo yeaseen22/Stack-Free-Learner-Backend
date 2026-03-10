@@ -11,9 +11,11 @@ import {
   getAllCoursesList,
   getCourseById,
   getCourseBySlug,
+  getCourseBySlugAndBatch,
   getCoursesByInstructor,
   getEnrolledCourses,
   updateCourse,
+  updateVideo,
   uploadContentToModule,
 } from "../../controllers/course/courseController";
 import { authorize } from "../../middleware/checkRole";
@@ -32,7 +34,7 @@ router.post(
 );
 router.post("/createModule", authenticate, createModule);
 router.post("/createBatch", authenticate, createBatch);
-router.post("/upload-content", uploadSingleVideo, uploadContentToModule);
+router.post("/upload-content", authenticate, uploadContentToModule);
 router.get("/course", getAllCourses);
 router.get("/course-lists", getAllCoursesList);
 router.get(
@@ -43,6 +45,7 @@ router.get(
 );
 router.get("/course/instructor/:id", authenticate, getCoursesByInstructor);
 router.get("/get-course", authenticate,  getEnrolledCourses);
+router.get("/stream/:slug/:batch", getCourseBySlugAndBatch);
 router.get("/:slug", getCourseBySlug);
 router.put(
   "/update/:id",
@@ -64,9 +67,15 @@ router.delete(
   deleteModule
 );
 router.delete(
-  "/content-delete/:id",
+  "/content-delete/:moduleContentId/:videoId",
   authenticate,
   authorize("admin", "instructor"),
   deleteContent
+);
+router.put(
+  "/video-update/:moduleContentId/:videoId",
+  authenticate,
+  authorize("admin", "instructor"),
+  updateVideo
 );
 export default router;
