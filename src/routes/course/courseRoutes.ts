@@ -20,7 +20,6 @@ import {
 } from "../../controllers/course/courseController";
 import { authorize } from "../../middleware/checkRole";
 import { authenticate } from "../../middleware/authMiddleware";
-import { uploadSingleVideo } from "../../utils/multerConfig";
 import { createBatch } from "../../controllers/course/batchController";
 
 const router = express.Router();
