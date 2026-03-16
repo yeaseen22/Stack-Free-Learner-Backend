@@ -1,16 +1,35 @@
 import express from "express";
 import { authenticate } from "../../middleware/authMiddleware";
 import { authorize } from "../../middleware/checkRole";
-import { allInstructorInfo, assignInstructorsToBatch, getInstructorDetails, unassignInstructorFromBatch } from "../../controllers/instructor/instructorController";
+import {
+  allInstructorInfo,
+  assignInstructorsToBatch,
+  getAssignedCourses,
+  getInstructorDetails,
+  instructorDashboardStats,
+  unassignInstructorFromBatch,
+} from "../../controllers/instructor/instructorController";
 
 const router = express.Router();
 
 router.get(
   "/instructors-info",
   authenticate,
-  authorize("admin", "instructor"),
   allInstructorInfo
 );
+
+router.get(
+  "/dashboard",
+  authenticate,
+  authorize("instructor", "admin"),
+  instructorDashboardStats
+);
+
+// Assigned courses — all URL variants used by frontend
+router.get("/get-assigned-courses", authenticate, authorize("instructor", "admin"), getAssignedCourses);
+router.get("/assigned-courses",     authenticate, authorize("instructor", "admin"), getAssignedCourses);
+router.get("/get-assigned-course",  authenticate, authorize("instructor", "admin"), getAssignedCourses);
+router.get("/assign-course",        authenticate, authorize("instructor", "admin"), getAssignedCourses);
 
 router.get(
   "/profile/:instructorId",
