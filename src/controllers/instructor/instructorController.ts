@@ -2,6 +2,10 @@ import { Request, Response } from "express";
 import { User } from "../../models/auth/UserModel";
 import { Types } from "mongoose";
 import Batch from "../../models/course/BatchModel";
+import { Enrollment } from "../../models/course/EnrollmentModel";
+import { Session } from "../../models/session/SessionModel";
+import QuizSubmission from "../../models/task/QuizModel";
+import { AssignmentSubmission } from "../../models/task/AssignmentSubmission";
 
 export const assignInstructorsToBatch = async (req: Request, res: Response): Promise<any> => {
   try {
@@ -125,7 +129,7 @@ export const allInstructorInfo = async (
       { $match: { role: "instructor" } },
       {
         $lookup: {
-          from: "batches", 
+          from: "batches",
           localField: "_id",
           foreignField: "instructors",
           as: "instructorBatches"
@@ -134,12 +138,12 @@ export const allInstructorInfo = async (
       {
         $unwind: {
           path: "$instructorBatches",
-          preserveNullAndEmptyArrays: true 
+          preserveNullAndEmptyArrays: true
         }
       },
       {
         $lookup: {
-          from: "courses", 
+          from: "courses",
           localField: "instructorBatches.course",
           foreignField: "_id",
           as: "instructorBatches.courseInfo"
@@ -247,22 +251,22 @@ export const getInstructorDetails = async (req: Request, res: Response): Promise
 
     // Validate instructor ID
     if (!Types.ObjectId.isValid(instructorId)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid instructor ID." 
+      return res.status(400).json({
+        success: false,
+        message: "Invalid instructor ID."
       });
     }
 
     // Aggregation pipeline to get detailed instructor info
     const instructor = await User.aggregate([
       // Stage 1: Match the specific instructor
-      { 
-        $match: { 
+      {
+        $match: {
           _id: new Types.ObjectId(instructorId),
-          role: "instructor" 
-        } 
+          role: "instructor"
+        }
       },
-      
+
       // Stage 2: Lookup batches assigned to this instructor
       {
         $lookup: {
@@ -272,15 +276,15 @@ export const getInstructorDetails = async (req: Request, res: Response): Promise
           as: "batches"
         }
       },
-      
+
       // Stage 3: Unwind batches array to process each batch
-      { 
+      {
         $unwind: {
           path: "$batches",
           preserveNullAndEmptyArrays: true // Keep instructor even if no batches
-        } 
+        }
       },
-      
+
       // Stage 4: Lookup course info for each batch
       {
         $lookup: {
@@ -321,7 +325,7 @@ export const getInstructorDetails = async (req: Request, res: Response): Promise
           }
         }
       },
-      
+
       // Stage 6: Filter out null batches and add count
       {
         $addFields: {
@@ -335,7 +339,7 @@ export const getInstructorDetails = async (req: Request, res: Response): Promise
           batchCount: { $size: "$batches" }
         }
       },
-      
+
       // Stage 7: Project final fields
       {
         $project: {
@@ -371,9 +375,9 @@ export const getInstructorDetails = async (req: Request, res: Response): Promise
 
     // Check if instructor was found
     if (!instructor || instructor.length === 0) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Instructor not found." 
+      return res.status(404).json({
+        success: false,
+        message: "Instructor not found."
       });
     }
 
@@ -389,6 +393,238 @@ export const getInstructorDetails = async (req: Request, res: Response): Promise
     return res.status(500).json({
       success: false,
       message: "Error retrieving instructor details",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
+export const getAssignedCourses = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const instructorId = req.user?.id;
+
+    if (!instructorId || !Types.ObjectId.isValid(instructorId)) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Unauthorized or invalid instructor." });
+    }
+
+    const instructorObjectId = new Types.ObjectId(instructorId);
+
+    // Find all batches where this instructor is assigned
+    const batches = await Batch.find({ instructors: instructorObjectId })
+      .populate("course", "_id title code description")
+      .sort({ batchNo: 1 })
+      .lean();
+
+    // Deduplicate courses and attach their batch list
+    const courseMap: Record<
+      string,
+      { courseId: string; title: string; code?: string; description?: string; batches: { batchId: string; batchNo: number; status: string; startDate: Date; endDate: Date }[] }
+    > = {};
+
+    for (const batch of batches) {
+      const course = batch.course as any;
+      if (!course) continue;
+      const cid = course._id.toString();
+      if (!courseMap[cid]) {
+        courseMap[cid] = {
+          courseId: cid,
+          title: course.title,
+          code: course.code,
+          description: course.description,
+          batches: [],
+        };
+      }
+      courseMap[cid].batches.push({
+        batchId: (batch._id as Types.ObjectId).toString(),
+        batchNo: batch.batchNo,
+        status: batch.status,
+        startDate: batch.startDate,
+        endDate: batch.endDate,
+      });
+    }
+
+    const courses = Object.values(courseMap);
+
+    return res.status(200).json({
+      success: true,
+      message: "Assigned courses retrieved successfully",
+      data: {
+        totalCourses: courses.length,
+        totalBatches: batches.length,
+        courses,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching assigned courses:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error retrieving assigned courses",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};
+
+export const instructorDashboardStats = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const instructorId = req.user?.id;
+
+    if (!instructorId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized access.",
+      });
+    }
+
+    if (!Types.ObjectId.isValid(instructorId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid instructor ID.",
+      });
+    }
+
+    const instructorObjectId = new Types.ObjectId(instructorId);
+
+    const instructor = await User.findOne({
+      _id: instructorObjectId,
+      role: "instructor",
+    }).select("_id name email userId");
+
+    if (!instructor) {
+      return res.status(404).json({
+        success: false,
+        message: "Instructor not found.",
+      });
+    }
+
+    const assignedBatches = await Batch.find({
+      instructors: instructorObjectId,
+    })
+      .populate("course", "_id title code")
+      .sort({ startDate: -1 });
+
+    const totalAssignedBatches = assignedBatches.length;
+    const activeBatches = assignedBatches.filter(
+      (batch) => batch.status === "active"
+    ).length;
+    const upcomingBatches = assignedBatches.filter(
+      (batch) => batch.status === "upcoming"
+    ).length;
+
+    const courseBatchPairs = assignedBatches
+      .map((batch: any) => {
+        const courseId = batch.course?._id || batch.course;
+        if (!courseId) return null;
+        return { course: courseId, batch: batch.batchNo };
+      })
+      .filter((item): item is { course: Types.ObjectId; batch: number } => Boolean(item));
+
+    const courseIds = Array.from(
+      new Set(courseBatchPairs.map((item) => item.course.toString()))
+    ).map((id) => new Types.ObjectId(id));
+
+    let totalStudents = 0;
+    if (courseBatchPairs.length > 0) {
+      const uniqueStudents = await Enrollment.aggregate([
+        {
+          $match: {
+            status: "success",
+            $or: courseBatchPairs.map((pair) => ({
+              course: pair.course,
+              batch: pair.batch,
+            })),
+          },
+        },
+        {
+          $group: {
+            _id: "$user",
+          },
+        },
+        {
+          $count: "total",
+        },
+      ]);
+
+      totalStudents = uniqueStudents[0]?.total || 0;
+    }
+
+    const now = new Date();
+
+    const [totalSessions, upcomingSessions, completedSessions] =
+      await Promise.all([
+        Session.countDocuments({ instructor: instructorObjectId }),
+        Session.countDocuments({
+          instructor: instructorObjectId,
+          status: "scheduled",
+          sessionDate: { $gte: now },
+        }),
+        Session.countDocuments({
+          instructor: instructorObjectId,
+          status: "completed",
+        }),
+      ]);
+
+    const [totalQuizSubmissions, totalAssignmentSubmissions] =
+      await Promise.all([
+        courseBatchPairs.length > 0
+          ? QuizSubmission.countDocuments({
+              $or: courseBatchPairs,
+            })
+          : 0,
+        courseBatchPairs.length > 0
+          ? AssignmentSubmission.countDocuments({
+              isSubmitted: true,
+              $or: courseBatchPairs,
+            })
+          : 0,
+      ]);
+
+    const upcomingSessionList = await Session.find({
+      instructor: instructorObjectId,
+      sessionDate: { $gte: now },
+      status: { $in: ["scheduled", "ongoing"] },
+    })
+      .select("title sessionDate duration status batchId")
+      .sort({ sessionDate: 1 })
+      .limit(5)
+      .populate("batchId", "batchNo");
+
+    return res.status(200).json({
+      success: true,
+      message: "Instructor dashboard stats retrieved successfully",
+      data: {
+        instructor: {
+          id: instructor._id,
+          name: instructor.name,
+          email: instructor.email,
+          userId: instructor.userId,
+        },
+        stats: {
+          totalAssignedBatches,
+          activeBatches,
+          upcomingBatches,
+          totalCourses: courseIds.length,
+          totalStudents,
+          totalSessions,
+          upcomingSessions,
+          completedSessions,
+          totalQuizSubmissions,
+          totalAssignmentSubmissions,
+        },
+        upcomingSessions: upcomingSessionList,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching instructor dashboard stats:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error retrieving instructor dashboard stats",
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }
