@@ -16,6 +16,7 @@ import adminDashboardRoutes from "./routes/admin/adminDashboardRoutes";
 import instructorRoutes from "./routes/instructor/instructorRoutes";
 import manualPaymentRoutes from "./routes/payment/manualPaymentRoutes";
 import sessionRoutes from "./routes/session/sessionRoutes";
+import vipRoutes from "./routes/vip/vipRoutes";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
@@ -66,5 +67,6 @@ app.use("/api/admin", adminDashboardRoutes)
 app.use("/api/instructor", instructorRoutes)
 app.use("/api/payment", manualPaymentRoutes)
 app.use("/api/sessions", sessionRoutes)
+app.use("/api/vip", vipRoutes)
 
 export default app;

@@ -5,10 +5,10 @@ export interface IBatchPerformance {
   batch: number;
   progress: number;
   startedAt: Date;
-  stone: number; 
-  quiz: number[]; 
-  assignment: number[]; 
-  totalMark: number; 
+  stone: number;
+  quiz: number[];
+  assignment: number[];
+  totalMark: number;
   profileType?: string;
   isUnlock?: boolean;
 }
@@ -30,6 +30,7 @@ export interface IUser {
   userId: string;
   enrolledCourses: Schema.Types.ObjectId[];
   role?: UserRole;
+  isVipStudent?: boolean;
   batchWisePerformance?: IBatchPerformance[];
   // New instructor-specific fields
   specialization?: string;
