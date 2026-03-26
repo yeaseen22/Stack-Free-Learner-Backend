@@ -3,7 +3,13 @@ import moment from "moment";
 
 export function generateSecureUserId(role: string): string {
   const rolePrefix =
-    role === "student" ? "STU" : role === "instructor" ? "INS" : "ADM";
+    role === "student"
+      ? "STU"
+      : role === "instructor"
+      ? "INS"
+      : role === "vipstudent"
+      ? "VIP"
+      : "ADM";
   const datePart = moment().format("YYMMDD");
 
   let randomPart = "";

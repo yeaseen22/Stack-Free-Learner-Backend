@@ -1,0 +1,23 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = __importDefault(require("express"));
+const authMiddleware_1 = require("../../middleware/authMiddleware");
+const checkRole_1 = require("../../middleware/checkRole");
+const vipBundleController_1 = require("../../controllers/vip/vipBundleController");
+const router = express_1.default.Router();
+router.get("/bundle-config", authMiddleware_1.authenticate, vipBundleController_1.getVipBundleConfig);
+router.put("/bundle-config", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin"), vipBundleController_1.upsertVipBundleConfig);
+router.post("/buy-bundle", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("student"), vipBundleController_1.buyVipBundle);
+router.get("/my-access", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("student"), vipBundleController_1.getMyVipAccess);
+router.get("/all-batches", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("student"), vipBundleController_1.getVipAllBatches);
+router.post("/assign/:userId", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin"), vipBundleController_1.assignVipToUser);
+router.patch("/revoke/:userId", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin"), vipBundleController_1.revokeVipFromUser);
+router.get("/pending-payments", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin"), vipBundleController_1.getPendingVipPayments);
+router.patch("/approve-payment/:purchaseId", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin"), vipBundleController_1.approveVipPayment);
+router.patch("/reject-payment/:purchaseId", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin"), vipBundleController_1.rejectVipPayment);
+router.patch("/update-role/:userId", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin"), vipBundleController_1.updateVipRoleFromAdmin);
+router.get("/students", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin"), vipBundleController_1.getAllVipStudents);
+exports.default = router;
