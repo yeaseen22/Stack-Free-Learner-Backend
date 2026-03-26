@@ -119,14 +119,16 @@ export const approveManualPaymentAndEnroll = async (
     // Provide more specific error message
     if (error instanceof Error) {
       if (error.message.includes('duplicate key') || error.message.includes('E11000')) {
-        return res.status(400).json({
+        res.status(400).json({
           message: "Enrollment already exists for this user, course, and batch"
         });
+        return;
       }
-      return res.status(500).json({
+      res.status(500).json({
         message: "Server error",
         error: error.message
       });
+      return;
     }
 
     res.status(500).json({ message: "Server error" });

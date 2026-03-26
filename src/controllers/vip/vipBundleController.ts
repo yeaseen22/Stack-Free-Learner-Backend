@@ -455,6 +455,15 @@ export const getMyVipAccess = async (
     }
 
     const courses = await Course.find({ status: "published" })
+      .populate({
+        path: "milestones",
+        populate: {
+          path: "modules",
+          populate: {
+            path: "moduleContents",
+          },
+        },
+      })
       .populate("batchData")
       .sort({ createdAt: -1 });
 
@@ -521,7 +530,19 @@ export const getVipAllBatches = async (
     }
 
     const batches = await Batch.find({})
-      .populate("course", "title slug category level")
+      .populate({
+        path: "course",
+        select: "title slug category level thumbnail milestones",
+        populate: {
+          path: "milestones",
+          populate: {
+            path: "modules",
+            populate: {
+              path: "moduleContents",
+            },
+          },
+        },
+      })
       .sort({ batchNo: 1 });
 
     return res.status(200).json({
