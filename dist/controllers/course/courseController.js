@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteContent = exports.deleteModule = exports.deleteMilestone = exports.deleteCourse = exports.updateCourse = exports.getCourseBySlug = exports.getEnrolledCourses = exports.getCoursesByInstructor = exports.getCourseById = exports.getAllCoursesList = exports.getAllCourses = exports.uploadContentToModule = exports.createModule = exports.createMilestone = exports.createCourse = void 0;
+exports.getCourseBySlugAndBatch = exports.updateVideo = exports.deleteContent = exports.deleteModule = exports.deleteMilestone = exports.deleteCourse = exports.updateCourse = exports.getCourseBySlug = exports.getEnrolledCourses = exports.getCoursesByInstructor = exports.getCourseById = exports.getAllCoursesList = exports.getAllCourses = exports.uploadContentToModule = exports.createModule = exports.createMilestone = exports.createCourse = void 0;
 const CourseModel_1 = require("../../models/course/CourseModel");
 const MilestoneModel_1 = __importDefault(require("../../models/content/MilestoneModel"));
 const ModuleModel_1 = __importDefault(require("../../models/content/ModuleModel"));
@@ -20,7 +20,6 @@ const slugify_1 = __importDefault(require("slugify"));
 const courseValidation_1 = require("../../utils/courseValidation");
 const EnrollmentModel_1 = require("../../models/course/EnrollmentModel");
 const mongoose_1 = __importDefault(require("mongoose"));
-const uploadFileToCloudinary_1 = require("../../utils/uploadFileToCloudinary");
 const VideoModel_1 = __importDefault(require("../../models/content/VideoModel"));
 const createCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -156,18 +155,23 @@ const uploadContentToModule = (req, res) => __awaiter(void 0, void 0, void 0, fu
             });
         }
         if (type === "video") {
-            if (!req.file) {
-                return res.status(400).json({ message: "Video file is required." });
+            const { videoId, thumbnail } = req.body;
+            console.log('Video upload data:', { title, videoId, thumbnail, type });
+            if (!videoId || !thumbnail) {
+                return res.status(400).json({
+                    message: "Fields 'videoId' and 'thumbnail' are required for video."
+                });
             }
-            try {
-                const videoUrl = yield (0, uploadFileToCloudinary_1.uploadFileToCloudinary)(req.file.buffer, "video");
-                moduleContent.videos.push({ title, url: videoUrl });
-            }
-            catch (err) {
-                return res
-                    .status(500)
-                    .json({ message: "Video upload failed", error: err });
-            }
+            // Generate YouTube URL from videoId
+            const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+            const videoData = {
+                title,
+                videoId,
+                thumbnail,
+                url: youtubeUrl
+            };
+            console.log('Pushing video data:', videoData);
+            moduleContent.videos.push(videoData);
         }
         else if (type === "assignment") {
             moduleContent.assignments.push({
@@ -450,12 +454,121 @@ const deleteModule = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 exports.deleteModule = deleteModule;
 const deleteContent = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id } = req.params;
-        yield VideoModel_1.default.findByIdAndDelete(id);
-        res.status(200).json({ message: "Content deleted successfully" });
+        const { moduleContentId, videoId } = req.params;
+        if (!moduleContentId || !videoId) {
+            return res.status(400).json({
+                message: "moduleContentId and videoId are required"
+            });
+        }
+        // Find the module content
+        const moduleContent = yield VideoModel_1.default.findById(moduleContentId);
+        if (!moduleContent) {
+            return res.status(404).json({ message: "Module content not found" });
+        }
+        // Find the video
+        const video = moduleContent.videos.find((v) => v._id.toString() === videoId);
+        if (!video) {
+            return res.status(404).json({ message: "Video not found" });
+        }
+        // Remove video from array (no Cloudinary deletion needed for YouTube links)
+        moduleContent.videos = moduleContent.videos.filter((v) => v._id.toString() !== videoId);
+        yield moduleContent.save();
+        res.status(200).json({
+            message: "Video deleted successfully",
+            moduleContent
+        });
     }
     catch (error) {
-        res.status(500).json({ message: "Content deletion failed", error });
+        console.error("Delete content error:", error);
+        res.status(500).json({
+            message: "Content deletion failed",
+            error: error instanceof Error ? error.message : "Unknown error"
+        });
     }
 });
 exports.deleteContent = deleteContent;
+const updateVideo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { moduleContentId, videoId } = req.params;
+        const { title, videoId: newVideoId, thumbnail } = req.body;
+        if (!moduleContentId || !videoId) {
+            return res.status(400).json({
+                message: "moduleContentId and videoId are required"
+            });
+        }
+        // Find the module content
+        const moduleContent = yield VideoModel_1.default.findById(moduleContentId);
+        if (!moduleContent) {
+            return res.status(404).json({ message: "Module content not found" });
+        }
+        // Find the video index
+        const videoIndex = moduleContent.videos.findIndex((v) => v._id.toString() === videoId);
+        if (videoIndex === -1) {
+            return res.status(404).json({ message: "Video not found" });
+        }
+        // Update video fields
+        if (title) {
+            moduleContent.videos[videoIndex].title = title;
+        }
+        if (newVideoId) {
+            moduleContent.videos[videoIndex].videoId = newVideoId;
+            moduleContent.videos[videoIndex].url = `https://www.youtube.com/watch?v=${newVideoId}`;
+        }
+        if (thumbnail) {
+            moduleContent.videos[videoIndex].thumbnail = thumbnail;
+        }
+        yield moduleContent.save();
+        res.status(200).json({
+            message: "Video updated successfully",
+            video: moduleContent.videos[videoIndex]
+        });
+    }
+    catch (error) {
+        console.error("Update video error:", error);
+        res.status(500).json({
+            message: "Video update failed",
+            error: error instanceof Error ? error.message : "Unknown error"
+        });
+    }
+});
+exports.updateVideo = updateVideo;
+// Get course by slug and batch
+const getCourseBySlugAndBatch = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { slug, batch } = req.params;
+        // Find the course by slug
+        const course = yield CourseModel_1.Course.findOne({ slug })
+            .populate({
+            path: "milestones",
+            populate: {
+                path: "modules",
+                populate: {
+                    path: "moduleContents",
+                },
+            },
+        })
+            .populate("batchData");
+        if (!course) {
+            return res.status(404).json({ message: "Course not found" });
+        }
+        // Filter batch data if batch parameter is provided
+        if (batch && course.batchData) {
+            const batchNumber = parseInt(batch);
+            const filteredBatchData = Array.isArray(course.batchData)
+                ? course.batchData.filter((b) => b.batchNumber === batchNumber)
+                : [];
+            const courseData = course.toObject();
+            courseData.batchData = filteredBatchData;
+            return res.status(200).json(courseData);
+        }
+        res.status(200).json(course);
+    }
+    catch (error) {
+        console.error("Get course by slug and batch error:", error);
+        res.status(500).json({
+            message: "Failed to fetch course",
+            error: error instanceof Error ? error.message : "Unknown error"
+        });
+    }
+});
+exports.getCourseBySlugAndBatch = getCourseBySlugAndBatch;

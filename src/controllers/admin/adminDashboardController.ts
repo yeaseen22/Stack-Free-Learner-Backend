@@ -313,7 +313,9 @@ export const changeUserRole = async (
   res: Response
 ): Promise<any> => {
   try {
-    const { userId, newRole } = req.body;
+    // Support both URL parameter and body parameter
+    const userId = req.params.userId || req.body.userId;
+    const { newRole } = req.body;
 
     if (!userId || !newRole) {
       return res.status(400).json({
@@ -351,8 +353,12 @@ export const changeUserRole = async (
       });
     }
 
-    user.role = newRole;
-    await user.save();
+    // Update only the role field to avoid validation issues
+    await User.findByIdAndUpdate(
+      userId,
+      { role: newRole },
+      { new: true, runValidators: false }
+    );
 
     return res.status(200).json({
       success: true,

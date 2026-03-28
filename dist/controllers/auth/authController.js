@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logout = exports.refresh = exports.login = exports.registerInstructor = exports.registerAdmin = exports.registerStudent = void 0;
+exports.logout = exports.refresh = exports.login = exports.registerInstructor = exports.registerAdmin = exports.registerVipStudent = exports.registerStudent = void 0;
 const UserModel_1 = require("../../models/auth/UserModel");
 const hashPassword_1 = require("../../utils/hashPassword");
 const deviceTracker_1 = require("../../helpers/deviceTracker");
@@ -57,6 +57,50 @@ const registerStudent = (req, res) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.registerStudent = registerStudent;
+// VIP Student registration (admin-managed)
+const registerVipStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { name, email, password } = req.body;
+        if (!name || !email || !password) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+        if (!/\S+@\S+\.\S+/.test(email)) {
+            return res.status(400).json({ message: "Invalid email format" });
+        }
+        const existingUser = yield UserModel_1.User.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ message: "User already exists" });
+        }
+        const hashedPassword = yield (0, hashPassword_1.hashPassword)(password, 10);
+        const userId = (0, generateSecureUserId_1.generateSecureUserId)("vipstudent");
+        const newUser = new UserModel_1.User({
+            userId,
+            name,
+            email,
+            role: "student",
+            isVipStudent: true,
+            password: hashedPassword,
+        });
+        yield newUser.save();
+        return res.status(201).json({
+            message: "VIP Student registered successfully",
+            user: {
+                id: newUser._id,
+                name: newUser.name,
+                email: newUser.email,
+                role: newUser.role,
+                isVipStudent: newUser.isVipStudent,
+                userId: newUser.userId,
+            },
+        });
+    }
+    catch (error) {
+        return res
+            .status(500)
+            .json({ message: "VIP Student registration failed", error });
+    }
+});
+exports.registerVipStudent = registerVipStudent;
 // Admin registration
 const registerAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -206,6 +250,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                isVipStudent: user.isVipStudent,
             },
         });
     }

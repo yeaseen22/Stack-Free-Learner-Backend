@@ -6,7 +6,16 @@ export const authenticate = (
   res: Response,
   next: NextFunction
 ) => {
-  const accessToken = req.cookies.accessToken;
+  // Check for token in cookies first
+  let accessToken = req.cookies.accessToken;
+
+  // If not in cookies, check Authorization header
+  if (!accessToken) {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      accessToken = authHeader.substring(7); // Remove 'Bearer ' prefix
+    }
+  }
 
   if (!accessToken) {
    res.status(401).json({ message: "No access token provided" });

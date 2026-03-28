@@ -18,6 +18,8 @@ router.post("/user/register", (0, validateRequest_1.validateRequest)(user_valida
 router.post("/admin/register", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin"), (0, validateRequest_1.validateRequest)(user_validation_1.registerAdminSchema), authController_1.registerAdmin);
 // Instructor registration (protected - only admins can create instructors)
 router.post("/instructor/register", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin"), (0, validateRequest_1.validateRequest)(user_validation_1.registerInstructorSchema), authController_1.registerInstructor);
+// VIP Student registration (protected - only admins can create VIP students)
+router.post("/vipstudent/register", authMiddleware_1.authenticate, (0, checkRole_1.authorize)("admin"), (0, validateRequest_1.validateRequest)(user_validation_1.registerUserSchema), authController_1.registerVipStudent);
 // --------------------User Management----------------------
 router.post("/user/login", authController_1.login);
 router.get("/refresh", authController_1.refresh);

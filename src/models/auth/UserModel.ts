@@ -29,6 +29,7 @@ const userSchema = new Schema<IUser>({
     enum: ["admin", "instructor", "student"],
     default: "student",
   },
+  isVipStudent: { type: Boolean, default: false },
   // Instructor-specific fields
   specialization: { type: String },
   qualifications: { type: [String] },

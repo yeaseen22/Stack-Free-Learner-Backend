@@ -62,6 +62,59 @@ export const registerStudent = async (
   }
 };
 
+// VIP Student registration (admin-managed)
+export const registerVipStudent = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    const hashedPassword = await hashPassword(password, 10);
+    const userId = generateSecureUserId("vipstudent");
+
+    const newUser = new User({
+      userId,
+      name,
+      email,
+      role: "student",
+      isVipStudent: true,
+      password: hashedPassword,
+    });
+
+    await newUser.save();
+
+    return res.status(201).json({
+      message: "VIP Student registered successfully",
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        isVipStudent: newUser.isVipStudent,
+        userId: newUser.userId,
+      },
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "VIP Student registration failed", error });
+  }
+};
+
 // Admin registration
 export const registerAdmin = async (
   req: Request,
@@ -240,6 +293,7 @@ export const login = async (req: Request, res: Response): Promise<any> => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isVipStudent: user.isVipStudent,
       },
     });
   } catch (error) {

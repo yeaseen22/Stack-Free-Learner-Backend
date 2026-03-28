@@ -16,9 +16,10 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const connectDB = (url) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield mongoose_1.default.connect(url);
+        console.log('✅ MongoDB connected successfully');
     }
     catch (err) {
-        console.error('MongoDB connection error', err);
+        console.error('❌ MongoDB connection error:', err);
     }
 });
 exports.default = connectDB;

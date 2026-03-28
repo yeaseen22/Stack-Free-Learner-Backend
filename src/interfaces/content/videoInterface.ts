@@ -2,7 +2,9 @@ import {  Types } from "mongoose";
 
 export interface Videos {
   title: string;
-  url: string;
+  videoId: string;
+  thumbnail: string;
+  url?: string;
 }
 
 export interface IAssignment {
@@ -24,7 +26,7 @@ export interface QuizQuestion {
 }
 
 export interface IQuiz {
-  title: string, 
+  title: string,
   questions: SingleQuestion[];
   submissionDate: Date;
 }

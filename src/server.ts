@@ -15,7 +15,7 @@ connectDB(url);
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  // console.clear(); 
+  // console.clear();
   // console.log(
   //   chalk.greenBright.bold(
   //     figlet.textSync("Programming Fighter", {

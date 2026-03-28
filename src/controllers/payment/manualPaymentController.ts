@@ -115,6 +115,22 @@ export const approveManualPaymentAndEnroll = async (
     });
   } catch (error) {
     console.error("Error approving payment and enrolling:", error);
+
+    // Provide more specific error message
+    if (error instanceof Error) {
+      if (error.message.includes('duplicate key') || error.message.includes('E11000')) {
+        res.status(400).json({
+          message: "Enrollment already exists for this user, course, and batch"
+        });
+        return;
+      }
+      res.status(500).json({
+        message: "Server error",
+        error: error.message
+      });
+      return;
+    }
+
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -135,7 +151,7 @@ export const getAllManualTransactions = async (
       student: txn.user?.name || "N/A",
       course: txn.course?.title || "N/A",
       amount: txn.amount,
-      phone: txn?.paymentPhoneNumber, 
+      phone: txn?.paymentPhoneNumber,
       method: txn?.method || "manual",
       status: txn.status,
       date: formatDate(txn.enrolledAt),

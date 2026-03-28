@@ -33,6 +33,8 @@ router.get(
   allStudentInfo
 );
 
+// Support both URL parameter and body parameter for backward compatibility
+router.patch("/role-update/:userId", authenticate, authorize("admin"), changeUserRole);
 router.patch("/role-update", authenticate, authorize("admin"), changeUserRole);
 
 router.post(

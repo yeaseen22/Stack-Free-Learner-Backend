@@ -17,7 +17,7 @@ if (!url) {
 (0, db_1.default)(url);
 const PORT = process.env.PORT || 5000;
 app_1.default.listen(PORT, () => {
-    // console.clear(); 
+    // console.clear();
     // console.log(
     //   chalk.greenBright.bold(
     //     figlet.textSync("Programming Fighter", {

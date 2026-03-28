@@ -8,6 +8,7 @@ import {
   registerAdmin,
   registerInstructor,
   registerStudent,
+  registerVipStudent,
 } from "../../controllers/auth/authController";
 import { validateRequest } from "../../middleware/validateRequest";
 import {
@@ -53,6 +54,15 @@ router.post(
   authorize("admin"),
   validateRequest(registerInstructorSchema),
   registerInstructor
+);
+
+// VIP Student registration (protected - only admins can create VIP students)
+router.post(
+  "/vipstudent/register",
+  authenticate,
+  authorize("admin"),
+  validateRequest(registerUserSchema),
+  registerVipStudent
 );
 
 // --------------------User Management----------------------

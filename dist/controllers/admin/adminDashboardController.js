@@ -291,7 +291,9 @@ exports.allStudentInfo = allStudentInfo;
 const changeUserRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        const { userId, newRole } = req.body;
+        // Support both URL parameter and body parameter
+        const userId = req.params.userId || req.body.userId;
+        const { newRole } = req.body;
         if (!userId || !newRole) {
             return res.status(400).json({
                 success: false,
@@ -323,8 +325,8 @@ const changeUserRole = (req, res) => __awaiter(void 0, void 0, void 0, function*
                 message: "User already has this role",
             });
         }
-        user.role = newRole;
-        yield user.save();
+        // Update only the role field to avoid validation issues
+        yield UserModel_1.User.findByIdAndUpdate(userId, { role: newRole }, { new: true, runValidators: false });
         return res.status(200).json({
             success: true,
             message: "User role updated successfully",

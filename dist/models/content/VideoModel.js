@@ -3,7 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = require("mongoose");
 const videoSchema = new mongoose_1.Schema({
     title: { type: String, required: true },
-    url: { type: String, required: true },
+    videoId: { type: String, required: false },
+    thumbnail: { type: String, required: false },
+    url: { type: String, required: false },
 });
 const assignmentSchema = new mongoose_1.Schema({
     title: { type: String, required: true },
