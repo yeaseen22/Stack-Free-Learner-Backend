@@ -1,25 +1,25 @@
-import express from "express";
-import cors from "cors";
-import authRoutes from "./routes/auth/authRoutes";
-import courseRoutes from "./routes/course/courseRoutes";
-import enrollRoutes from "./routes/course/enrollRoutes";
-import videosRoutes from "./routes/content/unlockedContentRoutes";
-import batchRoutes from "./routes/course/batchRoutes";
-import quizRoutes from "./routes/task/quizRoutes";
-import blogRoutes from "./routes/admin/blogRoutes";
-import performanceRoutes from "./routes/performance/performanceRoutes";
-import leaderboardRoutes from "./routes/dashboard/leaderboard";
-import forgetPassRoutes from "./routes/forget-password/forgetPass";
-import deviceRoutes from "./routes/auth/device";
-import assignmentSubmissionRoutes from "./routes/task/assignmentSubmissionRoutes";
-import adminDashboardRoutes from "./routes/admin/adminDashboardRoutes";
-import instructorRoutes from "./routes/instructor/instructorRoutes";
-import manualPaymentRoutes from "./routes/payment/manualPaymentRoutes";
-import sessionRoutes from "./routes/session/sessionRoutes";
-import vipRoutes from "./routes/vip/vipRoutes";
 import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
+import cors from "cors";
+import express from "express";
 import mongoose from "mongoose";
+import adminDashboardRoutes from "./routes/admin/adminDashboardRoutes";
+import blogRoutes from "./routes/admin/blogRoutes";
+import authRoutes from "./routes/auth/authRoutes";
+import deviceRoutes from "./routes/auth/device";
+import videosRoutes from "./routes/content/unlockedContentRoutes";
+import batchRoutes from "./routes/course/batchRoutes";
+import courseRoutes from "./routes/course/courseRoutes";
+import enrollRoutes from "./routes/course/enrollRoutes";
+import leaderboardRoutes from "./routes/dashboard/leaderboard";
+import forgetPassRoutes from "./routes/forget-password/forgetPass";
+import instructorRoutes from "./routes/instructor/instructorRoutes";
+import manualPaymentRoutes from "./routes/payment/manualPaymentRoutes";
+import performanceRoutes from "./routes/performance/performanceRoutes";
+import sessionRoutes from "./routes/session/sessionRoutes";
+import assignmentSubmissionRoutes from "./routes/task/assignmentSubmissionRoutes";
+import quizRoutes from "./routes/task/quizRoutes";
+import vipRoutes from "./routes/vip/vipRoutes";
 
 const app = express();
 
@@ -50,7 +50,7 @@ app.get("/", (req, res) => {
 });
 
 
-// Routes
+// Routes common
 app.use("/api/auth", authRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/enroll", enrollRoutes);
