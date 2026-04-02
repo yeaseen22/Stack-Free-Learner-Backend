@@ -3,32 +3,32 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
-const authRoutes_1 = __importDefault(require("./routes/auth/authRoutes"));
-const courseRoutes_1 = __importDefault(require("./routes/course/courseRoutes"));
-const enrollRoutes_1 = __importDefault(require("./routes/course/enrollRoutes"));
-const unlockedContentRoutes_1 = __importDefault(require("./routes/content/unlockedContentRoutes"));
-const batchRoutes_1 = __importDefault(require("./routes/course/batchRoutes"));
-const quizRoutes_1 = __importDefault(require("./routes/task/quizRoutes"));
-const blogRoutes_1 = __importDefault(require("./routes/admin/blogRoutes"));
-const performanceRoutes_1 = __importDefault(require("./routes/performance/performanceRoutes"));
-const leaderboard_1 = __importDefault(require("./routes/dashboard/leaderboard"));
-const forgetPass_1 = __importDefault(require("./routes/forget-password/forgetPass"));
-const device_1 = __importDefault(require("./routes/auth/device"));
-const assignmentSubmissionRoutes_1 = __importDefault(require("./routes/task/assignmentSubmissionRoutes"));
-const adminDashboardRoutes_1 = __importDefault(require("./routes/admin/adminDashboardRoutes"));
-const instructorRoutes_1 = __importDefault(require("./routes/instructor/instructorRoutes"));
-const manualPaymentRoutes_1 = __importDefault(require("./routes/payment/manualPaymentRoutes"));
-const sessionRoutes_1 = __importDefault(require("./routes/session/sessionRoutes"));
-const vipRoutes_1 = __importDefault(require("./routes/vip/vipRoutes"));
 const body_parser_1 = __importDefault(require("body-parser"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const cors_1 = __importDefault(require("cors"));
+const express_1 = __importDefault(require("express"));
 const mongoose_1 = __importDefault(require("mongoose"));
+const adminDashboardRoutes_1 = __importDefault(require("./routes/admin/adminDashboardRoutes"));
+const blogRoutes_1 = __importDefault(require("./routes/admin/blogRoutes"));
+const authRoutes_1 = __importDefault(require("./routes/auth/authRoutes"));
+const device_1 = __importDefault(require("./routes/auth/device"));
+const unlockedContentRoutes_1 = __importDefault(require("./routes/content/unlockedContentRoutes"));
+const batchRoutes_1 = __importDefault(require("./routes/course/batchRoutes"));
+const courseRoutes_1 = __importDefault(require("./routes/course/courseRoutes"));
+const enrollRoutes_1 = __importDefault(require("./routes/course/enrollRoutes"));
+const leaderboard_1 = __importDefault(require("./routes/dashboard/leaderboard"));
+const forgetPass_1 = __importDefault(require("./routes/forget-password/forgetPass"));
+const instructorRoutes_1 = __importDefault(require("./routes/instructor/instructorRoutes"));
+const manualPaymentRoutes_1 = __importDefault(require("./routes/payment/manualPaymentRoutes"));
+const performanceRoutes_1 = __importDefault(require("./routes/performance/performanceRoutes"));
+const sessionRoutes_1 = __importDefault(require("./routes/session/sessionRoutes"));
+const assignmentSubmissionRoutes_1 = __importDefault(require("./routes/task/assignmentSubmissionRoutes"));
+const quizRoutes_1 = __importDefault(require("./routes/task/quizRoutes"));
+const vipRoutes_1 = __importDefault(require("./routes/vip/vipRoutes"));
 const app = (0, express_1.default)();
 // Middleware
 app.use((0, cors_1.default)({
-    origin: ["http://localhost:3000", "http://localhost:8000"],
+    origin: ["https://stack-free-learner-frontend.vercel.app", "https://stack-free-learner-backend.vercel.app/api"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
@@ -49,7 +49,7 @@ app.get("/", (req, res) => {
         timestamp: new Date().toISOString()
     });
 });
-// Routes
+// Routes common
 app.use("/api/auth", authRoutes_1.default);
 app.use("/api/courses", courseRoutes_1.default);
 app.use("/api/enroll", enrollRoutes_1.default);
